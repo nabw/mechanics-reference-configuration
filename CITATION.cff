@@ -1,0 +1,31 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Reconstructing relaxed configurations in elastic
+  bodies:Mathematical formulations and numerical methods for
+  cardiacmodeling
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Nicolás Alejandro
+    family-names: Barnafi Wittwer
+    email: nbarnafi@cmm.uchile.cl
+    affiliation: >-
+      Centro de Modelamiento Matemático, Universidad de
+      Chile
+    orcid: 'https://orcid.org/0000-0001-9818-0342'
+  - given-names: 'Francesco '
+    family-names: Regazzoni
+    email: francesco.regazzoni@polimi.it
+    affiliation: Politecnico di Milano
+    orcid: 'https://orcid.org/0000-0002-4207-1400'
+  - given-names: Davide
+    family-names: Riccobelli
+    email: davide.riccobelli@polimi.it
+    affiliation: Politecnico di Milano
+    orcid: 'https://orcid.org/0000-0001-6424-5689'
+repository-code: 'https://github.com/nabw/mechanics-reference-configuration'
