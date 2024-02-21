@@ -1,0 +1,12 @@
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid Name="Grid">
+      <Geometry GeometryType="XYZ">
+        <DataItem DataType="Float" Dimensions="3125 3" Format="HDF" Precision="8">prolate_h4_v2_ASCII.h5:/data0</DataItem>
+      </Geometry>
+      <Topology NumberOfElements="11308" TopologyType="Tetrahedron">
+        <DataItem DataType="Int" Dimensions="11308 4" Format="HDF" Precision="8">prolate_h4_v2_ASCII.h5:/data1</DataItem>
+      </Topology>
+    </Grid>
+  </Domain>
+</Xdmf>

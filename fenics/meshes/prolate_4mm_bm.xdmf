@@ -1,0 +1,15 @@
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid Name="Grid">
+      <Geometry GeometryType="XYZ">
+        <DataItem DataType="Float" Dimensions="6903 3" Format="HDF" Precision="8">prolate_4mm_bm.h5:/data0</DataItem>
+      </Geometry>
+      <Topology NumberOfElements="6712" TopologyType="Triangle">
+        <DataItem DataType="Int" Dimensions="6712 3" Format="HDF" Precision="8">prolate_4mm_bm.h5:/data1</DataItem>
+      </Topology>
+      <Attribute Center="Cell" Name="name_to_read" Type="None">
+        <DataItem DataType="Int" Dimensions="6712" Format="HDF" Precision="8">prolate_4mm_bm.h5:/data2</DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>
