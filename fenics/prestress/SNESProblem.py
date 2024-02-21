@@ -2,10 +2,11 @@ from dolfin import *
 from petsc4py import PETSc
 from mpi4py import MPI
 
+
 class SNESProblem():
     def __init__(self, FF, JJ, uu, bbcs=None):
         self.L = FF
-        self.a = JJ # derivative(FF, uu, ddu)
+        self.a = JJ  # derivative(FF, uu, ddu)
         self.u = uu
         self.bcs = None
         if bbcs:
@@ -30,7 +31,7 @@ class SNESProblem():
         xx.copy(self.u.vector().vec())
         self.u.vector().apply("")
         assemble(self.a, tensor=JJ)
-        if self.bcs: 
+        if self.bcs:
             for bc in self.bcs0:
                 bc.apply(JJ)
         PP = JJ
@@ -51,4 +52,3 @@ class SNESProblem():
                 bc.apply(self.u.vector())
         snes.solve(None, self.u.vector().vec())
         return snes.getIterationNumber(), snes.getLinearSolveIterations()
-

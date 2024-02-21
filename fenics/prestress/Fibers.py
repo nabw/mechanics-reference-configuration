@@ -48,7 +48,6 @@ def getApicobasalCoordinate(mesh, boundary_markers, BASE, degree=2):
     a = df.dot(df.grad(phi_trial), df.grad(psi)) * df.dx
     L = df.Constant(0.0) * psi * df.dx
 
-
     quotes = mesh.coordinates()[:, 2]
     min_quote = df.MPI.max(df.MPI.comm_world, quotes.max())
 
@@ -100,7 +99,7 @@ def generateFibers(mesh, boundary_markers, ENDO, EPI, BASE, output_dir=None):
     elif alg_type == 0:
         s = df.grad(phi_transmural)
         s = s / df.sqrt(df.inner(s, s))
-        k = df.Constant((.0, .0, -1.)) 
+        k = df.Constant((.0, .0, -1.))
         kp_tilde = k - df.dot(k, s) * s
         kp = kp_tilde / df.sqrt(df.inner(kp_tilde, kp_tilde))
         f_tilde = df.cross(s, kp)
@@ -163,7 +162,6 @@ def generateFibers(mesh, boundary_markers, ENDO, EPI, BASE, output_dir=None):
             f[i, :] = - f[i, :] / np.sqrt(np.inner(f[i, :], f[i, :]))
             n[i, :] = np.cross(f[i, :], s[i, :])
 
-
         f_vec = np.empty(ndof_local * 3)
         for i in range(3):
             f_vec[i::3] = f[:, i]
@@ -185,7 +183,6 @@ def generateFibers(mesh, boundary_markers, ENDO, EPI, BASE, output_dir=None):
         s.vector().apply("insert")
         n.vector().set_local(n_vec)
         n.vector().apply("insert")
-
 
     if df.MPI.rank(df.MPI.comm_world) == 0:
         print("fibers generated!", flush=True)

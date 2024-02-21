@@ -1,14 +1,17 @@
-from firedrake import * 
+from firedrake import *
 import numpy as np
 parameters["form_compiler"]["quadrature_degree"] = 4
+
+
 def parprint(*args):
     if COMM_WORLD.rank == 0:
         print("[=]", *args, flush=True)
 
 
-# Params 
+# Params
 saveEvery = 1
-incomp=False
+incomp = False
+
 
 def solveID(meshname, output, pressure_known):
     # Geometry and measures
@@ -17,7 +20,7 @@ def solveID(meshname, output, pressure_known):
     ds_mesh = ds(mesh)
     ds_endo = ds_mesh(9)
     ds_epi = ds_mesh(10)
-    
+
     # Functional setting
     V = None
     if incomp:
@@ -33,23 +36,21 @@ def solveID(meshname, output, pressure_known):
         u = Function(V)
         sol = u
         v = TestFunction(V)
-    
+
     # Ramping (HoMoToPy CoNtInUaTiOn)
     ramp = Constant(0.0, domain=mesh)
-    
-    
+
     # Variational formulation
     f = Identity(3) + grad(u)  # Inverse tensor for inverse problem
     j = det(f)
     F = variable(inv(f))  # Compute original one to diff
     J = det(F)
     Cbar = J**(-2/3) * F.T * F
-    
-    
+
     # Usyk,. mc Culloch 2002
-    f0 = Constant((1,0,0), domain=mesh) # Isotropic
-    s0 = Constant((0,1,0), domain=mesh)
-    n0 = Constant((0,0,1), domain=mesh)
+    f0 = Constant((1, 0, 0), domain=mesh)  # Isotropic
+    s0 = Constant((0, 1, 0), domain=mesh)
+    n0 = Constant((0, 0, 1), domain=mesh)
     Cg = .88e3   # [Pa]
     bf = 8       # [-]
     bs = 6       # [-]
@@ -59,33 +60,37 @@ def solveID(meshname, output, pressure_known):
     bsn = 3       # [-]
     k = Constant(5e6, domain=mesh)
     E = 0.5*(Cbar - Identity(3))
-    
-    b_list = [bf,bs,bn,bfs,bfn,bsn]
+
+    b_list = [bf, bs, bn, bfs, bfn, bsn]
     bavg = sum(b_list) / len(b_list)
-    Q = Constant(bavg, domain=mesh) * inner(E, E) # bs seems like a good average
+    # bs seems like a good average
+    Q = Constant(bavg, domain=mesh) * inner(E, E)
     WP = 0.5*Constant(Cg, domain=mesh)*(exp(Q)-1)
     WV = Constant(k, domain=mesh)/2*(J-1)*ln(J)
-    
+
     # Finally build the Robin condition terms, Pfaller et al.
     k_perp = Constant(2e5, domain=mesh)  # [Pa/m]
     c_perp = Constant(5e3, domain=mesh)  # [Pa*s/m]
-    
+
     psi = WP + WV
-    if incomp: 
+    if incomp:
         psi += p * (J-1)
-    
+
     nn = FacetNormal(mesh)
-    k_perp = Constant(1e2, domain=mesh) # artificial
-    ts_robin = outer(nn, nn)*k_perp*u + (Identity(3) - outer(nn, nn)) * k_perp/10*u  # flip signs for inverse displacement
-    P = diff(psi, F) 
-    
-    F_form = inner(j * P, grad(v) * inv(f)) * dx_mesh - ramp * Constant(-pressure_known, domain=mesh) * dot(nn, v) * ds_endo - dot(ts_robin, v) * ds_epi
-    if incomp: 
+    k_perp = Constant(1e2, domain=mesh)  # artificial
+    # flip signs for inverse displacement
+    ts_robin = outer(nn, nn)*k_perp*u + \
+        (Identity(3) - outer(nn, nn)) * k_perp/10*u
+    P = diff(psi, F)
+
+    F_form = inner(j * P, grad(v) * inv(f)) * dx_mesh - ramp * Constant(-pressure_known,
+                                                                        domain=mesh) * dot(nn, v) * ds_endo - dot(ts_robin, v) * ds_epi
+    if incomp:
         F_form += (j-1) * q * dx_mesh
-    
+
     snes_params = {"type": "newtonls",
                    "linesearch_type": "none",
-                   #"monitor": None,
+                   # "monitor": None,
                    "atol": 1e-10,
                    "rtol": 1e-4,
                    "snes_error_if_not_converged": "false",
@@ -95,25 +100,24 @@ def solveID(meshname, output, pressure_known):
                          "pc_type": "lu",
                          "pc_factor_mat_solver_type": "mumps",
                          }
-    
-    
-    
+
     outfile = File(output)
     u_out = Function(Vu, name='u')
     outfile.write(u_out, time=0)
-    i=0
+    i = 0
     problem = NonlinearVariationalProblem(F_form, sol)
-    solver = NonlinearVariationalSolver(problem, solver_parameters=solver_parameters)
-    
+    solver = NonlinearVariationalSolver(
+        problem, solver_parameters=solver_parameters)
+
     # Adaptive stepping
     r = 0
     step = 1
     sol_prev = Function(V)
-    while r<1:
+    while r < 1:
         r_test = r+step
         parprint("Solving ramp={:.3e}".format(r_test))
         ramp.assign(r_test)
-        sol.assign(sol_prev) # snes saves diverged solutions!
+        sol.assign(sol_prev)  # snes saves diverged solutions!
         solver.solve()
         converged = solver.snes.getConvergedReason() > 0
         if not converged:
@@ -129,11 +133,11 @@ def solveID(meshname, output, pressure_known):
                 u_out.assign(u)
             sol_prev.assign(sol)
             r = r_test
-            if i % saveEvery == 0: 
-                outfile.write(u_out,time=r)
-            i+=1
-    
-    outfile.write(u_out,time=r)
+            if i % saveEvery == 0:
+                outfile.write(u_out, time=r)
+            i += 1
+
+    outfile.write(u_out, time=r)
     parprint("Done")
 
 

@@ -36,7 +36,6 @@ class AndersonAcceleration:
             self.delta_fk.zeroEntries()
             self.d_fk0.zeroEntries()
             self.fk0.zeroEntries()
-       
 
     def get_next_vector(self, gk):
 

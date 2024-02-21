@@ -18,7 +18,7 @@ def backwardForm_cardiac(f0, s0, n0, dx_mesh, ds_base, ds_endo, ds_epi, nn, u, v
         F = variable(inv(f))  # Compute original one to diff
     J = det(F)
     Cbar = J**(-2/3) * F.T * F
-    vec_z = Constant((0,0,1.))
+    vec_z = Constant((0, 0, 1.))
 
     # Usyk,. mc Culloch 2002
     Cg = .88e3   # [Pa]
@@ -60,8 +60,8 @@ def backwardForm_cardiac(f0, s0, n0, dx_mesh, ds_base, ds_endo, ds_epi, nn, u, v
     else:
         P = diff(psi, F) + ramp * activeStress(F, f0, active_stress_known)
         F_form = inner(j * P, grad(v) * inv(f)) * dx_mesh - ramp * Constant(-pressure_known) * dot(nn, v) * ds_endo - \
-        ramp * Constant(neumann_z) * dot(vec_z, v) * ds_base - \
-        dot(ts_robin, v) * ds_epi - ramp * rhos * dot(gravity, v) * dx
+            ramp * Constant(neumann_z) * dot(vec_z, v) * ds_base - \
+            dot(ts_robin, v) * ds_epi - ramp * rhos * dot(gravity, v) * dx
 
     return F_form
 
@@ -72,7 +72,7 @@ def forwardForm_cardiac(f0, s0, n0, dx_mesh, ds_base, ds_endo, ds_epi, nn, u, v,
     F = variable(F)  # Inverse tensor for inverse problem
     Cbar = det(F)**(-2/3) * F.T * F
     J = det(F)
-    vec_z = Constant((0,0,1.))
+    vec_z = Constant((0, 0, 1.))
 
     # Usyk,. mc Culloch 2002
     Cg = .88e3   # [Pa]
@@ -120,7 +120,6 @@ def forwardForm_cardiac(f0, s0, n0, dx_mesh, ds_base, ds_endo, ds_epi, nn, u, v,
     return F_form
 
 
-
 def backwardForm(dx_mesh, ds_N, nn, u, v, ramp, neumann_load, volumetric_load):
 
     dim = u.ufl_shape[0]
@@ -130,7 +129,7 @@ def backwardForm(dx_mesh, ds_N, nn, u, v, ramp, neumann_load, volumetric_load):
     F = variable(inv(f))  # Compute original one to diff
     J = det(F)
     Cbar = J**(-2/3) * F.T * F
-    vec_z = Constant((0,0,1.))
+    vec_z = Constant((0, 0, 1.))
 
     # Elasticity parameters, Neo-Hookean from FEniCS documentation
     E = 1.0e4
@@ -138,12 +137,13 @@ def backwardForm(dx_mesh, ds_N, nn, u, v, ramp, neumann_load, volumetric_load):
     mu = Constant(E/(2*(1 + nu)))
     lmbda = Constant(E*nu/((1 + nu)*(1 - 2*nu)))
     Ic = tr(Cbar)
-    psi = (mu / 2) * (Ic - 3) + 0.5 * lmbda * (J-1) * ln(J) 
+    psi = (mu / 2) * (Ic - 3) + 0.5 * lmbda * (J-1) * ln(J)
     P = diff(psi, F)
     rhos = Constant(1e3)
     gravity = Constant(volumetric_load) * vec_z
 
-    F_form = inner(j * P, grad(v) * inv(f)) * dx_mesh - ramp * Constant(neumann_load) * dot(vec_z, v) * ds_N - ramp * rhos * dot(gravity, v) * dx
+    F_form = inner(j * P, grad(v) * inv(f)) * dx_mesh - ramp * Constant(
+        neumann_load) * dot(vec_z, v) * ds_N - ramp * rhos * dot(gravity, v) * dx
     return F_form
 
 
@@ -154,7 +154,7 @@ def forwardForm(dx_mesh, ds_N, nn, u, v, ramp, neumann_load, volumetric_load):
     F = variable(F)
     J = det(F)
     Cbar = J**(-2/3) * F.T * F
-    vec_z = Constant((0,0,1.))
+    vec_z = Constant((0, 0, 1.))
 
     # Elasticity parameters, Neo-Hookean from FEniCS documentation
     E = 1.0e4
@@ -162,7 +162,7 @@ def forwardForm(dx_mesh, ds_N, nn, u, v, ramp, neumann_load, volumetric_load):
     mu = Constant(E/(2*(1 + nu)))
     lmbda = Constant(E*nu/((1 + nu)*(1 - 2*nu)))
     Ic = tr(Cbar)
-    psi = (mu / 2) * (Ic - 3) + 0.5 * lmbda * (J-1) * ln(J) 
+    psi = (mu / 2) * (Ic - 3) + 0.5 * lmbda * (J-1) * ln(J)
     P = diff(psi, F)
     rhos = Constant(1e3)
     gravity = Constant(volumetric_load) * vec_z
@@ -172,5 +172,7 @@ def forwardForm(dx_mesh, ds_N, nn, u, v, ramp, neumann_load, volumetric_load):
     # Valid at spatial config, so we pull back the normal.
     NN = 1 / cofnorm * cof * nn
 
-    F_form = inner(P, grad(v)) * dx_mesh - ramp * Constant(neumann_load) * dot(vec_z, v) * cofnorm * ds_N - ramp * rhos * dot(gravity, v) * 1 / J * dx
+    F_form = inner(P, grad(v)) * dx_mesh - ramp * Constant(neumann_load) * \
+        dot(vec_z, v) * cofnorm * ds_N - ramp * \
+        rhos * dot(gravity, v) * 1 / J * dx
     return F_form

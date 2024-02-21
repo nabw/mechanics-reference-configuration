@@ -1,17 +1,19 @@
+from time import perf_counter as time
+from sys import argv
+import numpy as np
 from firedrake import *
 parameters["form_compiler"]["quadrature_degree"] = 4
-import numpy as np
-from sys import argv
-from time import perf_counter as time
+
 
 def parprint(*args):
     if COMM_WORLD.rank == 0:
         print("[=]", *args, flush=True)
 
+
 N = int(argv[1])
 load = float(argv[2])
 prec = argv[3]
-mesh = BoxMesh(3*N,N,N,1e-2, 0.3e-2,0.3e-2)
+mesh = BoxMesh(3*N, N, N, 1e-2, 0.3e-2, 0.3e-2)
 dx = dx(mesh)
 ds = ds(mesh)
 
@@ -24,22 +26,22 @@ v = TestFunction(V)
 # Ramping (HoMoToPy CoNtInUaTiOn)
 ramp = Constant(0.0)
 Nsteps = 1
-ramp_steps = np.linspace(0,1,Nsteps+1)
+ramp_steps = np.linspace(0, 1, Nsteps+1)
 
-solver_parameters={
+solver_parameters = {
     "snes_type": "newtonls",
     "snes_atol": 1e-12,
     "snes_rtol": 1e-6,
     "snes_stol": 0.0,
     "snes_linesearch_type": "basic",
-    "ksp_type": "gmres", 
+    "ksp_type": "gmres",
     "ksp_atol": 0.0,
     "ksp_rtol": 1e-6,
     "ksp_max_it": 5000,
-    "ksp_norm_type": "unpreconditioned", 
+    "ksp_norm_type": "unpreconditioned",
     "ksp_gmres_restart": 1000,
     "pc_type": prec,
-    #"ps_asm_blocks": 8, # Go hard
+    # "ps_asm_blocks": 8, # Go hard
     "sub_ksp_type": "preonly",
     "sub_pc_type": "ilu",
     "pc_mg_adapt_interp_coarse_space": "gdsw",
@@ -48,7 +50,7 @@ solver_parameters={
     "mg_levels_pc_type": "asm",
     "snes_error_if_not_converged": True,
     "ksp_converged_reason": None
-    }
+}
 
 # Variational formulation
 f = Identity(3) + grad(u)  # Inverse tensor for inverse problem
@@ -66,30 +68,35 @@ psi = (mu / 2) * (Ic - 3) + 0.5 * lmbda * (J-1) * ln(J)
 P = diff(psi, F)
 rhos = Constant(1e3, domain=mesh)
 
-F_form = inner(j * P, grad(v) * inv(f)) * dx - ramp * rhos * Constant(load, domain=mesh) * v[2] * dx
+F_form = inner(j * P, grad(v) * inv(f)) * dx - ramp * \
+    rhos * Constant(load, domain=mesh) * v[2] * dx
 
-zero = Constant((0.0,0.0,0.0), domain=mesh)
-bcs = DirichletBC(V, zero, 1) # x = 0
+zero = Constant((0.0, 0.0, 0.0), domain=mesh)
+bcs = DirichletBC(V, zero, 1)  # x = 0
 problem = NonlinearVariationalProblem(F_form, u, bcs=bcs)
 
 # Set RMs
 x = mesh.coordinates
-e0 = Constant((1,0,0), domain=mesh)
-e1 = Constant((0,1,0), domain=mesh)
-e2 = Constant((0,0,1), domain=mesh)
+e0 = Constant((1, 0, 0), domain=mesh)
+e1 = Constant((0, 1, 0), domain=mesh)
+e2 = Constant((0, 0, 1), domain=mesh)
 def genVec(vv): interpolate(vv, V)
-exps = [e0, e1, e2, cross(e0, x), cross(e1, x), cross(e2,x)]
+
+
+exps = [e0, e1, e2, cross(e0, x), cross(e1, x), cross(e2, x)]
 vecs = [Function(V) for vv in exps]
-for i,e in enumerate(exps):
+for i, e in enumerate(exps):
     vecs[i].interpolate(e)
 nn = VectorSpaceBasis(vecs)
 nn.orthonormalize()
 
-solver = NonlinearVariationalSolver(problem, solver_parameters=solver_parameters, near_nullspace=nn)
+solver = NonlinearVariationalSolver(
+    problem, solver_parameters=solver_parameters, near_nullspace=nn)
 l_its = []
 init_time = time()
 for r in ramp_steps:
-    if r < 1e-12: continue
+    if r < 1e-12:
+        continue
     parprint("Solving step ramp={}".format(r))
     ramp.assign(r)
     solver.solve()

@@ -36,11 +36,14 @@ def getXDMFFile(outname, mesh=False):
     import dolfin as df
     from dolfin import MPI
     import sys
-    if not outname: return None
+    if not outname:
+        return None
     if mesh:
-        if ".xdmf" not in outname[:-5]: outname = outname + "_mesh.xdmf"
+        if ".xdmf" not in outname[:-5]:
+            outname = outname + "_mesh.xdmf"
     else:
-        if ".xdmf" not in outname[:-5]: outname = outname + ".xdmf"
+        if ".xdmf" not in outname[:-5]:
+            outname = outname + ".xdmf"
     xdmffile = df.XDMFFile(MPI.comm_world, "{}".format(outname))
     xdmffile.parameters["functions_share_mesh"] = True
     xdmffile.parameters["flush_output"] = True
@@ -51,7 +54,8 @@ def getXDMFFile(outname, mesh=False):
 def slabGeometry(nx, ny, nz):
     import dolfin as df
     mesh = None
-    mesh = df.BoxMesh(df.Point(0.0, 0.0, 0.0), df.Point(1e-2, 3e-3, 3e-3), nx, ny, nz)
+    mesh = df.BoxMesh(df.Point(0.0, 0.0, 0.0),
+                      df.Point(1e-2, 3e-3, 3e-3), nx, ny, nz)
     markers = df.MeshFunction("size_t", mesh, mesh.geometric_dimension() - 1)
     X0 = df.CompiledSubDomain("near(x[0], 0.0) && on_boundary")
     XL = df.CompiledSubDomain("near(x[0], 1e-2) && on_boundary")
@@ -66,7 +70,7 @@ def slabGeometry(nx, ny, nz):
     XL.mark(markers, 4)
     YL.mark(markers, 5)
     ZL.mark(markers, 6)
-    return mesh, markers, 1,2,3,4,5,6
+    return mesh, markers, 1, 2, 3, 4, 5, 6
 
 
 def prolateGeometry(filename="prolate_4mm"):
