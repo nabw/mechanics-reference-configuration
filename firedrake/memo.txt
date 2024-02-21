@@ -1,0 +1,8 @@
+Geometry tags: 
+
+- Tagged inner as 9
+- Tagged outer as 10
+- Tagged top as 11
+- Tagged bottom as 12
+
+To generate geometry, open in gsmh and click 1D, 2D, 3D. Then export WITH ALL ELEMENTS. Firedrake will read correctly the resulting .msh file.
